@@ -1,4 +1,4 @@
-#DS Store
+# DS Store
 .DS_Store
 
 # VS Code
@@ -6,3 +6,6 @@
 
 # Python Virtual Env
 .venv/
+
+# Python Byte Data
+__pycache__/
