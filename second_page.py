@@ -6,6 +6,9 @@
 
 import gradio as gr
 from difflib import Differ
+import gradio as gr
+
+canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=RichTextEditor.html' frameborder='0' scrolling='no'></iframe>"""
 
 EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
 
@@ -79,5 +82,10 @@ with gr.Blocks(theme=gr.themes.Soft()) as second_page:
         #file_input.upload(load_text, inputs=[], outputs=[loaded_text])
         upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
         submit_button.click(diff_texts, inputs=[loaded_text, corrected_text], outputs=[corrections])
+    with gr.TabItem("Rich Text Editor"):
+        gr.HTML(canvas_html, elem_id="canvas_html")
+        with gr.Row():
+            accept_paragraph_button = gr.Button("Ignore")
+            submit_paragraph_button = gr.Button("Swap")  # gr.Button("Accept")
 
 #second_page.launch()
