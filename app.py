@@ -36,6 +36,8 @@ original_text = gr.Textbox(
 )
 
 
+# Isn't currently working. Seems to need to be called with a button click like other componenets/functions
+# Source: https://github.com/gradio-app/gradio/issues/2412
 def change_page(page_number):
     """Changes the page to the page number passed in."""
     return gr.Tabs.update(selected=page_number)
