@@ -18,11 +18,13 @@ CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mau
 
 Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
 
+
 def load_text(temp_file):
     content = ""
     with open(temp_file.name, "r", encoding="utf-8") as f:
         content = f.read()
     return content
+
 
 def diff_texts(text1, text2):
     d = Differ()
@@ -30,6 +32,7 @@ def diff_texts(text1, text2):
         (token[2:], token[0] if token[0] != " " else None)
         for token in d.compare(text1, text2)
     ]
+
 
 with gr.Blocks(theme=gr.themes.Soft()) as second_page:
     gr.Markdown("Type, Paste, or Upload your text below")
@@ -55,37 +58,49 @@ with gr.Blocks(theme=gr.themes.Soft()) as second_page:
             color_map={"+": "green", "-": "red"},
         )
         submit_button.click(diff_texts, inputs=[text_input, corrected_text], outputs=[corrections])
+        clear_button = gr.ClearButton()
+
     with gr.Tab("Upload"):
         file_input = gr.File(
             file_types=["text"],
         )
-        upload_button = gr.Button("Upload")
+        with gr.Row():
+            upload_button = gr.Button("Upload")
+            clear_button = gr.ClearButton()
+
+    with gr.TabItem("Format"):
+        gr.TabItem("Uploaded Text")
+
         loaded_text = gr.Textbox(
             label="Your Text",
             info="The text you uploaded.",
             lines=10,
         )
-        submit_button = gr.Button("Submit")
-        corrected_text = gr.Textbox(
-            label="Corrected Text",
-            info="Our suggested corrected text",
-            lines=10,
-            value=CORRECTED_TEXT,
-            visible=False,
-        )
+        with gr.Row():
+            submit_button = gr.Button("Submit")
+            clear_button = gr.ClearButton()
+
         corrections = gr.HighlightedText(
             label="Corrections",
             combine_adjacent=True,
             show_legend=True,
             color_map={"+": "green", "-": "red"},
         )
-        #file_input.upload(load_text, inputs=[], outputs=[loaded_text])
+
+        # file_input.upload(load_text, inputs=[], outputs=[loaded_text])
         upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
         submit_button.click(diff_texts, inputs=[loaded_text, corrected_text], outputs=[corrections])
+
+        with gr.Row():
+            submit_paragraph_button = gr.Button("Accept")
+            accept_paragraph_button = gr.Button("Ignore")
+            done_paragraph_button = gr.Button("Done")
+
     with gr.TabItem("Rich Text Editor"):
         gr.HTML(canvas_html, elem_id="canvas_html")
         with gr.Row():
-            accept_paragraph_button = gr.Button("Ignore")
-            submit_paragraph_button = gr.Button("Swap")  # gr.Button("Accept")
+            download_button = gr.Button("Download")
+            copy_button = gr.Button("Copy")
+            done_button = gr.Button("Done")
 
-#second_page.launch()
+
