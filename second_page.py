@@ -32,7 +32,7 @@ def diff_texts(text1, text2):
     ]
 
 with gr.Blocks(theme=gr.themes.Soft()) as second_page:
-    gr.Markdown("Type, Paste, or Upload your text below")
+
     with gr.Tab("Type/Paste"):
         text_input = gr.Textbox(
             label="Your Text",
