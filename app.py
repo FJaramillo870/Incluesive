@@ -4,8 +4,8 @@
 # Program: Inclusivity Editor App
 # File: app.py
 
-from second_page import second_page
 
+from second_page import second_page
 second_page.launch()
 
 # TODO: Add First and Third Pages
