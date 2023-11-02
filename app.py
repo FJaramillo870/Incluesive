@@ -23,7 +23,7 @@ CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mau
 
 Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
 
-textInput = "There once was a farmer named..."
+textInput = ""
 
 DIFFERENCES = []
 
@@ -34,7 +34,6 @@ original_text = gr.Textbox(
     info="Your original text.",
     lines=10,
 )
-
 
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
@@ -72,6 +71,7 @@ def load_text(temp_file):
 
 def submit_text(text):
     users_text = text
+    text_input += users_text
     change_page(2)
     return users_text
 
