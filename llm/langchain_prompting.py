@@ -2,10 +2,7 @@ import textwrap
 
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
-DEFAULT_SYSTEM_PROMPT = """
-You are a helpful, respectful, and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-
-If a question does not make any sense, or is not factually coherent, explain why instead of answering with something not correct. If you don't know the answer to a question, please don't share false information."""
+DEFAULT_SYSTEM_PROMPT = """You are an advanced assistant that excels at rewriting text to be more inclusive while maintaining the intended tone of the text. If text contains any sexist, racist, ableist, homophobic, or otherwise non-inclusive language, you re-write it to be inclusive to all people. If you think the text is already inclusive, then just say there's nothing to change."""
 
 
 def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):

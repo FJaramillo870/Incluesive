@@ -9,7 +9,12 @@ from difflib import Differ
 from fpdf import *
 import pyperclip
 
+from llm.incluesive_llm import IncluesiveLLM
+
+
 users_text = ""
+corrected_text = ""
+reasoning = ""
 
 canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=RichTextEditor.html' frameborder='0' scrolling='no'></iframe>"""
 
@@ -71,7 +76,10 @@ def load_text(temp_file):
 
 def submit_text(text):
     users_text = text
-    text_input += users_text
+    llm = IncluesiveLLM(users_text)
+    corrected_text = llm.get_corrections()
+    reasoning = llm.get_reasoning()
+    #text_input += users_text
     change_page(2)
     return users_text
 
@@ -111,7 +119,6 @@ with gr.Blocks() as incluesive:
                     label="Your Text",
                     info="Your Original Text.",
                     lines=10,
-                    value=EXAMPLE_TEXT,
                 )
                 submit_button = gr.Button("Submit")
                 corrected_text = gr.Textbox(
@@ -144,7 +151,7 @@ with gr.Blocks() as incluesive:
                 )
                 submit_button = gr.Button("Submit")
                 upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
-                submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
+                submit_button.click(submit_text, inputs=[loaded_text], outputs=[original_text, corrected_text])
             with gr.Tab("Rich Text Editor"):
                 gr.HTML(canvas_html, elem_id="canvas_html")
                 with gr.Row():
