@@ -1,6 +1,6 @@
 import together
 from typing import Any, Dict
-from pydantic import Extra, root_validator
+from pydantic import Extra, root_validator      # Needed to be pydantic==1.10.10
 from langchain.llms.base import LLM
 from langchain.utils import get_from_dict_or_env
 

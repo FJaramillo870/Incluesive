@@ -13,38 +13,12 @@ from llm.incluesive_llm import IncluesiveLLM
 
 
 users_text = ""
-corrected_text = ""
-reasoning = ""
+llms_text = ""
+llms_reasoning = ""
 
 canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=RichTextEditor.html' frameborder='0' scrolling='no'></iframe>"""
 
-# For testing, will be what the user inputs
-EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
-Etiam libero nisi, fringilla a imperdiet in, luctus a tortor. Pellentesque quis venenatis velit, quis malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac faucibus."""
-
-# For testing, will be what the LLM returns
-CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
-Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
-
 textInput = ""
-
-DIFFERENCES = []
-
-
-# Global Components (accessed by multiple tabs/pages)
-original_text = gr.Textbox(
-    label="Your Text",
-    info="Your original text.",
-    lines=10,
-)
-
-# Isn't currently working. Seems to need to be called with a button click like other componenets/functions
-# Source: https://github.com/gradio-app/gradio/issues/2412
-def change_page(page_number):
-    """Changes the page to the page number passed in."""
-    return gr.Tabs.update(selected=page_number)
 
 
 def download(output):
@@ -71,16 +45,16 @@ def load_text(temp_file):
     content = ""
     with open(temp_file.name, "r", encoding="utf-8") as f:
         content = f.read()
+    users_text = content
     return content
 
 
 def submit_text(text):
     users_text = text
     llm = IncluesiveLLM(users_text)
-    corrected_text = llm.get_corrections()
-    reasoning = llm.get_reasoning()
-    #text_input += users_text
-    change_page(2)
+    llms_text = llm.get_corrections()
+    llms_reasoning = llm.get_reasoning()
+    #text_input += users_text   #-wasn't working as of 11/7
     return users_text
 
 
@@ -121,14 +95,7 @@ with gr.Blocks() as incluesive:
                     lines=10,
                 )
                 submit_button = gr.Button("Submit")
-                corrected_text = gr.Textbox(
-                    label="Corrected Text",
-                    info="Our suggested corrected text",
-                    lines=10,
-                    value=CORRECTED_TEXT,
-                    visible=False,
-                )
-                submit_button.click(submit_text, inputs=[text_input], outputs=original_text)
+                submit_button.click(submit_text, inputs=[text_input], outputs=[])
                 clear_button = gr.ClearButton()
             with gr.Tab("Upload"):
                 file_input = gr.File(
@@ -142,16 +109,9 @@ with gr.Blocks() as incluesive:
                     info="The text you uploaded.",
                     lines=10,
                 )
-                corrected_text = gr.Textbox(
-                    label="Corrected Text",
-                    info="Our suggested corrected text",
-                    lines=10,
-                    value=CORRECTED_TEXT,
-                    visible=False,
-                )
                 submit_button = gr.Button("Submit")
                 upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
-                submit_button.click(submit_text, inputs=[loaded_text], outputs=[original_text, corrected_text])
+                submit_button.click(submit_text, inputs=[loaded_text], outputs=[])
             with gr.Tab("Rich Text Editor"):
                 gr.HTML(canvas_html, elem_id="canvas_html")
                 with gr.Row():
@@ -163,18 +123,31 @@ with gr.Blocks() as incluesive:
 
         """THIRD PAGE"""
         with gr.TabItem("Results", id=2) as third_page:
-            original_text.render()
-            with gr.Row():
-                submit_button = gr.Button("Submit")
-                clear_button = gr.ClearButton()
-
+            original_textbox = gr.Textbox(
+                label="Your Text",
+                info="Your original text.",
+                lines=10,
+                value=users_text,
+            )
             corrections = gr.HighlightedText(
                 label="Corrections",
                 combine_adjacent=True,
                 show_legend=True,
                 color_map={"+": "green", "-": "red"},
+                value=diff_texts(users_text, llms_text),
             )
-            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=corrections)
+            corrected_textbox = gr.Textbox(
+                label="Corrected Text",
+                info="Our suggested corrected text",
+                lines=10,
+                value=llms_text,
+            )
+            reasoning_textbox = gr.Textbox(
+                label="Reasoning",
+                info="Our reasoning for the corrections",
+                lines=10,
+                value=llms_reasoning,
+            )
             with gr.Row():
                 submit_paragraph_button = gr.Button("Accept")
                 accept_paragraph_button = gr.Button("Ignore")

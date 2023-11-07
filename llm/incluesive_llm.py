@@ -24,7 +24,9 @@ class IncluesiveLLM:
         self.output = self.llm_chain.run(self.user_text).split("\n\n", 1)
 
     def get_corrections(self):
+        print(f"Output 0: {self.output[0]}")
         return self.output[0]
     
     def get_reasoning(self):
+        print(f"Output 1: {self.output[1]}")
         return self.output[1]
