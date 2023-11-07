@@ -8,6 +8,7 @@ import gradio as gr
 from difflib import Differ
 from fpdf import *
 import pyperclip
+import time
 
 users_text = ""
 
@@ -85,6 +86,18 @@ def diff_texts(text1, text2):
     ]
 
 
+def prompts(choice):
+    if choice == "Professional Correspondence":
+        return
+    elif choice == "Personal Correspondence":
+        return
+    elif choice == "Educational Paper":
+        return
+    elif choice == "Technical Instructions":
+        return 
+
+
+
 with gr.Blocks() as incluesive:
     gr.Markdown("# INCLUeSIVE")
     with gr.Tabs() as pages:
@@ -99,7 +112,7 @@ with gr.Blocks() as incluesive:
                     pref = gr.Button(value="Preferences", size='sm')
                     choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
                                        "Technical Instructions"], label="Writing purpose")
-                    choice.change(fn=None, inputs=choice, outputs=None)
+                    choice.change(fn=prompts, inputs=choice, outputs=None)
         """END FIRST PAGE"""
 
         """SECOND PAGE"""
