@@ -35,6 +35,8 @@ original_text = gr.Textbox(
     lines=10,
 )
 
+previewText = gr.Textbox(label="Output Textbox", value=textInput)
+
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
 def change_page(page_number):
@@ -54,11 +56,10 @@ def download(output):
     return pdf_file
 
 
-def copyText(output):
+def copy_text(output):
     """Copy text to the clipboard."""
     pyperclip.copy(output)
     text = pyperclip.paste()
-    return text
 
 
 def load_text(temp_file):
@@ -167,7 +168,7 @@ with gr.Blocks() as incluesive:
                 show_legend=True,
                 color_map={"+": "green", "-": "red"},
             )
-            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=corrections)
+            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=[corrections, previewText])
             with gr.Row():
                 submit_paragraph_button = gr.Button("Accept")
                 accept_paragraph_button = gr.Button("Ignore")
@@ -181,14 +182,14 @@ with gr.Blocks() as incluesive:
                 preferences = gr.Button(value="Preferences")
                 signout = gr.Button(value="Sign Out")
             with gr.Row():
-                output = gr.Textbox(label="Output Textbox", value=textInput)
+                previewText.render()
                 file = gr.File()
             with gr.Row():
                 download_btn = gr.Button(value="Download", scale=0)
                 copy_btn = gr.Button(value="Copy", scale=0)
                 done_btn = gr.Button(value="Done", scale=0)
-                download_btn.click(fn=download, inputs=output, outputs=file, api_name="Download")
-                copy_btn.click(fn=copyText, inputs=output, outputs=output, api_name="Copy")
+                download_btn.click(fn=download, inputs=previewText, outputs=file, api_name="Download")
+                copy_btn.click(fn=copy_text, inputs=previewText, api_name="Copy")
         """END FOURTH PAGE"""
 
 
