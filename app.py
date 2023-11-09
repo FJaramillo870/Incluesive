@@ -39,6 +39,10 @@ previewText = gr.Textbox(label="Output Textbox", value=textInput)
 
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
+
+def update_preview(text):
+    return text
+
 def change_page(page_number):
     """Changes the page to the page number passed in."""
     return gr.Tabs.update(selected=page_number)
@@ -158,6 +162,7 @@ with gr.Blocks() as incluesive:
         """THIRD PAGE"""
         with gr.TabItem("Results", id=2) as third_page:
             original_text.render()
+            original_text.change(update_preview, original_text, previewText)
             with gr.Row():
                 submit_button = gr.Button("Submit")
                 clear_button = gr.ClearButton()
@@ -168,7 +173,7 @@ with gr.Blocks() as incluesive:
                 show_legend=True,
                 color_map={"+": "green", "-": "red"},
             )
-            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=[corrections, previewText])
+            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=corrections)
             with gr.Row():
                 submit_paragraph_button = gr.Button("Accept")
                 accept_paragraph_button = gr.Button("Ignore")
