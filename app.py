@@ -41,6 +41,7 @@ previewText = gr.Textbox(label="Output Textbox", value=textInput)
 # Source: https://github.com/gradio-app/gradio/issues/2412
 
 def update_preview(text):
+    gr.Textbox(label="Output Textbox", value=textInput)
     return text
 
 def change_page(page_number):
@@ -128,6 +129,7 @@ with gr.Blocks() as incluesive:
                 )
                 submit_button.click(submit_text, inputs=[text_input], outputs=original_text)
                 clear_button = gr.ClearButton()
+                text_input.change(submit_text, text_input, original_text)
             with gr.Tab("Upload"):
                 file_input = gr.File(
                     file_types=["text"],
