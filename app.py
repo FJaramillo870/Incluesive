@@ -6,6 +6,7 @@
 
 import gradio as gr
 from difflib import Differ
+from docx import *
 from fpdf import *
 import pyperclip
 
@@ -40,25 +41,55 @@ previewText = gr.Textbox(label="Output Textbox", value=textInput)
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
 
+
 def update_preview(text):
     gr.Textbox(label="Output Textbox", value=textInput)
     return text
+
 
 def change_page(page_number):
     """Changes the page to the page number passed in."""
     return gr.Tabs.update(selected=page_number)
 
 
-def download(output):
-    """Download text as a PDF."""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
+def download(output, type):
+    match type:
+        case "PDF":
+            """Download text as a PDF."""
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
 
-    pdf.multi_cell(0, 10, str(output))
-    pdf_file = "history_download.pdf"
-    pdf.output(pdf_file)
-    return pdf_file
+            pdf.multi_cell(0, 10, str(output))
+            pdf_file = "history_download.pdf"
+            pdf.output(pdf_file)
+            return pdf_file
+        case "DOCX":
+            doc = Document()
+
+            doc.add_heading('History Download', 0)
+            doc.add_paragraph(output)
+            doc_output = "history_download.docx"
+            doc.save(doc_output)
+
+            return doc_output
+        case "TXT":
+            text_file = None
+            with open('history_download.txt', 'w') as txt_file:
+                txt_file.write(output)
+                text_file = txt_file
+                txt_file.close()
+            return 'history_download.txt'
+        case _:
+            """Download text as a PDF."""
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+
+            pdf.multi_cell(0, 10, str(output))
+            pdf_file = type + "history_download.pdf"
+            pdf.output(pdf_file)
+            return pdf_file
 
 
 def copy_text(output):
@@ -91,10 +122,14 @@ def diff_texts(text1, text2):
     ]
 
 
+def dropdown_callback(value):
+    return value
+
+
 with gr.Blocks() as incluesive:
     gr.Markdown("# INCLUeSIVE")
     with gr.Tabs() as pages:
-        
+
 
         """FIRST PAGE"""
         with gr.TabItem("Welcome", id=0) as first_page:
@@ -184,7 +219,7 @@ with gr.Blocks() as incluesive:
 
 
         """FOURTH PAGE"""
-        with gr.TabItem("Save", id=3) as third_page:
+        with gr.TabItem("Save", id=3) as fourth_page:
             with gr.Accordion(label="Account"):
                 preferences = gr.Button(value="Preferences")
                 signout = gr.Button(value="Sign Out")
@@ -192,11 +227,14 @@ with gr.Blocks() as incluesive:
                 previewText.render()
                 file = gr.File()
             with gr.Row():
+                dropdown_type = gr.Dropdown(
+                    ["DOCX", "PDF", "TXT"], label="File Type", info="Select your file type."
+                )
                 download_btn = gr.Button(value="Download", scale=0)
                 copy_btn = gr.Button(value="Copy", scale=0)
                 done_btn = gr.Button(value="Done", scale=0)
-                download_btn.click(fn=download, inputs=previewText, outputs=file, api_name="Download")
-                copy_btn.click(fn=copy_text, inputs=previewText, api_name="Copy")
+                download_btn.click(fn=download, inputs=[previewText, dropdown_type], outputs=file, api_name="Download")
+                copy_btn.click(fn=copy_text, inputs=textInput, api_name="Copy")
         """END FOURTH PAGE"""
 
 
