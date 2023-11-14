@@ -16,12 +16,10 @@ canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' s
 
 # For testing, will be what the user inputs
 EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
 Etiam libero nisi, fringilla a imperdiet in, luctus a tortor. Pellentesque quis venenatis velit, quis malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac faucibus."""
 
 # For testing, will be what the LLM returns
 CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
 Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
 
 textInput = ""
@@ -74,12 +72,11 @@ def download(output, type):
 
             return doc_output
         case "TXT":
-            text_file = None
+            text_file = 'history_download.txt'
             with open('history_download.txt', 'w') as txt_file:
                 txt_file.write(output)
-                text_file = txt_file
                 txt_file.close()
-            return 'history_download.txt'
+            return text_file
         case _:
             """Download text as a PDF."""
             pdf = FPDF()
@@ -234,7 +231,7 @@ with gr.Blocks() as incluesive:
                 copy_btn = gr.Button(value="Copy", scale=0)
                 done_btn = gr.Button(value="Done", scale=0)
                 download_btn.click(fn=download, inputs=[previewText, dropdown_type], outputs=file, api_name="Download")
-                copy_btn.click(fn=copy_text, inputs=textInput, api_name="Copy")
+                copy_btn.click(fn=copy_text, inputs=previewText, api_name="Copy")
         """END FOURTH PAGE"""
 
 
