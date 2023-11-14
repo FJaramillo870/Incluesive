@@ -186,10 +186,6 @@ with gr.Blocks() as incluesive:
                 submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
             with gr.Tab("Rich Text Editor"):
                 gr.HTML(canvas_html, elem_id="canvas_html")
-                with gr.Row():
-                    download_button = gr.Button("Download")
-                    copy_button = gr.Button("Copy")
-                    done_button = gr.Button("Done")
         """END SECOND PAGE"""
 
 
