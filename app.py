@@ -147,6 +147,7 @@ with gr.Blocks() as incluesive:
                 submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
             with gr.Tab("Rich Text Editor"):
                 gr.HTML(canvas_html, elem_id="canvas_html")
+
         """END SECOND PAGE"""
 
 
