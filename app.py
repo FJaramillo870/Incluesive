@@ -94,7 +94,7 @@ def prompts(choice):
     elif choice == "Educational Paper":
         return
     elif choice == "Technical Instructions":
-        return 
+        return
 
 
 
