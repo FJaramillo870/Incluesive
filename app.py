@@ -8,10 +8,30 @@ import gradio as gr
 from difflib import Differ
 from fpdf import *
 import pyperclip
+import together
+
+together.api_key = "ENTER YOUR TOGETHER API HERE"
+
+output = together.Complete.create(
+    prompt="Correct this to standard English:\nI no Sandwich want.",
+    model="togethercomputer/llama-2-7b-chat",
+    max_tokens=256,
+    temperature=0.8,
+    top_k=60,
+    top_p=0.6,
+    repetition_penalty=1.1,
+    stop=['<human>']
+)
+# print generated text
+
+# print(output['output']['choices'][0]['text'])
+answer=(output['output']['choices'][0]['text']).strip().split("Answer:\n")[1]
+print(answer)
+
+# TODD: sentenced separated and uploaded to prompt
+
 
 users_text = ""
-
-canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=RichTextEditor.html' frameborder='0' scrolling='no'></iframe>"""
 
 # For testing, will be what the user inputs
 EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
@@ -26,7 +46,6 @@ Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, 
 textInput = "There once was a farmer named..."
 
 DIFFERENCES = []
-
 
 # Global Components (accessed by multiple tabs/pages)
 original_text = gr.Textbox(
@@ -84,25 +103,38 @@ def diff_texts(text1, text2):
         for token in d.compare(text1, text2)
     ]
 
+def call_llm():
+    output = together.Complete.create(
+        prompt="Correct this to standard English:\nI no Sandwich want.",
+        model="togethercomputer/llama-2-7b-chat",
+        max_tokens=256,
+        temperature=0.8,
+        top_k=60,
+        top_p=0.6,
+        repetition_penalty=1.1,
+        stop=['<human>', '\n\n']
+    )
+    # print generated text
+    print(output['output']['choices'][0]['text'])
+
 
 with gr.Blocks() as incluesive:
     gr.Markdown("# INCLUeSIVE")
     with gr.Tabs() as pages:
-        
-
         """FIRST PAGE"""
         with gr.TabItem("Welcome", id=0) as first_page:
             with gr.Tabs():
                 with gr.TabItem("Directions"):
-                    gr.Markdown("Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
-                    "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
+                    gr.Markdown(
+                        "Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
+                        "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
                 with gr.TabItem("Preferences"):
                     pref = gr.Button(value="Preferences", size='sm')
-                    choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper", "Technical Instructions"],label="Writing purpose")
+                    choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
+                                       "Technical Instructions"], label="Writing purpose")
                     submit_button = gr.Button("Submit", link="")
                     submit_button.click(inputs=choice, outputs=None)
         """END FIRST PAGE"""
-
 
         """SECOND PAGE"""
         with gr.TabItem("Input", id=1) as second_page:
@@ -145,11 +177,7 @@ with gr.Blocks() as incluesive:
                 submit_button = gr.Button("Submit")
                 upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
                 submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
-            with gr.Tab("Rich Text Editor"):
-                gr.HTML(canvas_html, elem_id="canvas_html")
-
         """END SECOND PAGE"""
-
 
         """THIRD PAGE"""
         with gr.TabItem("Results", id=2) as third_page:
@@ -171,7 +199,6 @@ with gr.Blocks() as incluesive:
                 done_paragraph_button = gr.Button("Done")
         """END THIRD PAGE"""
 
-
         """FOURTH PAGE"""
         with gr.TabItem("Save", id=3) as third_page:
             with gr.Accordion(label="Account"):
@@ -187,6 +214,5 @@ with gr.Blocks() as incluesive:
                 download_btn.click(fn=download, inputs=output, outputs=file, api_name="Download")
                 copy_btn.click(fn=copyText, inputs=output, outputs=output, api_name="Copy")
         """END FOURTH PAGE"""
-
 
 incluesive.launch()
