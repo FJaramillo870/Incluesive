@@ -6,6 +6,7 @@
 
 import gradio as gr
 from difflib import Differ
+from docx import *
 from fpdf import *
 import pyperclip
 import together
@@ -35,15 +36,13 @@ users_text = ""
 
 # For testing, will be what the user inputs
 EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
 Etiam libero nisi, fringilla a imperdiet in, luctus a tortor. Pellentesque quis venenatis velit, quis malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac faucibus."""
 
 # For testing, will be what the LLM returns
 CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
 Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
 
-textInput = "There once was a farmer named..."
+textInput = ""
 
 DIFFERENCES = []
 
@@ -54,31 +53,65 @@ original_text = gr.Textbox(
     lines=10,
 )
 
+previewText = gr.Textbox(label="Output Textbox", value=textInput)
 
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
+
+
+def update_preview(text):
+    gr.Textbox(label="Output Textbox", value=textInput)
+    return text
+
+
 def change_page(page_number):
     """Changes the page to the page number passed in."""
     return gr.Tabs.update(selected=page_number)
 
 
-def download(output):
-    """Download text as a PDF."""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
+def download(output, type):
+    match type:
+        case "PDF":
+            """Download text as a PDF."""
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
 
-    pdf.multi_cell(0, 10, str(output))
-    pdf_file = "history_download.pdf"
-    pdf.output(pdf_file)
-    return pdf_file
+            pdf.multi_cell(0, 10, str(output))
+            pdf_file = "history_download.pdf"
+            pdf.output(pdf_file)
+            return pdf_file
+        case "DOCX":
+            doc = Document()
+
+            doc.add_heading('History Download', 0)
+            doc.add_paragraph(output)
+            doc_output = "history_download.docx"
+            doc.save(doc_output)
+
+            return doc_output
+        case "TXT":
+            text_file = 'history_download.txt'
+            with open('history_download.txt', 'w') as txt_file:
+                txt_file.write(output)
+                txt_file.close()
+            return text_file
+        case _:
+            """Download text as a PDF."""
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+
+            pdf.multi_cell(0, 10, str(output))
+            pdf_file = type + "history_download.pdf"
+            pdf.output(pdf_file)
+            return pdf_file
 
 
-def copyText(output):
+def copy_text(output):
     """Copy text to the clipboard."""
     pyperclip.copy(output)
     text = pyperclip.paste()
-    return text
 
 
 def load_text(temp_file):
@@ -91,6 +124,7 @@ def load_text(temp_file):
 
 def submit_text(text):
     users_text = text
+    text_input += users_text
     change_page(2)
     return users_text
 
@@ -102,22 +136,6 @@ def diff_texts(text1, text2):
         (token[2:], token[0] if token[0] != " " else None)
         for token in d.compare(text1, text2)
     ]
-
-def call_llm():
-    output = together.Complete.create(
-        prompt="Correct this to standard English:\nI no Sandwich want.",
-        model="togethercomputer/llama-2-7b-chat",
-        max_tokens=256,
-        temperature=0.8,
-        top_k=60,
-        top_p=0.6,
-        repetition_penalty=1.1,
-        stop=['<human>', '\n\n']
-    )
-    # print generated text
-    print(output['output']['choices'][0]['text'])
-
-
 with gr.Blocks() as incluesive:
     gr.Markdown("# INCLUeSIVE")
     with gr.Tabs() as pages:
@@ -155,6 +173,7 @@ with gr.Blocks() as incluesive:
                 )
                 submit_button.click(submit_text, inputs=[text_input], outputs=original_text)
                 clear_button = gr.ClearButton()
+                text_input.change(submit_text, text_input, original_text)
             with gr.Tab("Upload"):
                 file_input = gr.File(
                     file_types=["text"],
@@ -182,6 +201,7 @@ with gr.Blocks() as incluesive:
         """THIRD PAGE"""
         with gr.TabItem("Results", id=2) as third_page:
             original_text.render()
+            original_text.change(update_preview, original_text, previewText)
             with gr.Row():
                 submit_button = gr.Button("Submit")
                 clear_button = gr.ClearButton()
@@ -200,19 +220,21 @@ with gr.Blocks() as incluesive:
         """END THIRD PAGE"""
 
         """FOURTH PAGE"""
-        with gr.TabItem("Save", id=3) as third_page:
+        with gr.TabItem("Save", id=3) as fourth_page:
             with gr.Accordion(label="Account"):
                 preferences = gr.Button(value="Preferences")
                 signout = gr.Button(value="Sign Out")
             with gr.Row():
-                output = gr.Textbox(label="Output Textbox", value=textInput)
+                previewText.render()
                 file = gr.File()
             with gr.Row():
+                dropdown_type = gr.Dropdown(
+                    ["DOCX", "PDF", "TXT"], label="File Type", info="Select your file type."
+                )
                 download_btn = gr.Button(value="Download", scale=0)
                 copy_btn = gr.Button(value="Copy", scale=0)
                 done_btn = gr.Button(value="Done", scale=0)
-                download_btn.click(fn=download, inputs=output, outputs=file, api_name="Download")
-                copy_btn.click(fn=copyText, inputs=output, outputs=output, api_name="Copy")
+                download_btn.click(fn=download, inputs=[previewText, dropdown_type], outputs=file, api_name="Download")
+                copy_btn.click(fn=copy_text, inputs=previewText, api_name="Copy")
         """END FOURTH PAGE"""
-
 incluesive.launch()
