@@ -11,36 +11,26 @@ from fpdf import *
 import pyperclip
 import together
 
-together.api_key = "ENTER YOUR TOGETHER API HERE"
+# TODO: get rid of functions we don't need and unused variables
 
-output = together.Complete.create(
-    prompt="Correct this to standard English:\nI no Sandwich want.",
-    model="togethercomputer/llama-2-7b-chat",
-    max_tokens=256,
-    temperature=0.8,
-    top_k=60,
-    top_p=0.6,
-    repetition_penalty=1.1,
-    stop=['<human>']
-)
-# print generated text
-
-# print(output['output']['choices'][0]['text'])
-answer=(output['output']['choices'][0]['text']).strip().split("Answer:\n")[1]
-print(answer)
-
-# TODD: sentenced separated and uploaded to prompt
-
+together.api_key = "YOUR API KEY HERE"
 
 users_text = ""
 
 # For testing, will be what the user inputs
+<<<<<<< Updated upstream
 EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
 Etiam libero nisi, fringilla a imperdiet in, luctus a tortor. Pellentesque quis venenatis velit, quis malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac faucibus."""
 
 # For testing, will be what the LLM returns
 CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
 Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
+=======
+EXAMPLE_TEXT = ""
+
+# For testing, will be what the LLM returns
+CORRECTED_TEXT = ""
+>>>>>>> Stashed changes
 
 textInput = ""
 
@@ -136,6 +126,29 @@ def diff_texts(text1, text2):
         (token[2:], token[0] if token[0] != " " else None)
         for token in d.compare(text1, text2)
     ]
+<<<<<<< Updated upstream
+=======
+
+
+def call_llm(prompt_text):
+    llm = together.Complete.create(
+        # TODO: Add the selected preferences choice here to the string instead of hard coding it in.
+        prompt=' Rewrite as a Professional Correspondence'+ prompt_text,
+        model="togethercomputer/llama-2-7b-chat",
+        max_tokens=256,
+        temperature=0.8,
+        top_k=60,
+        top_p=0.6,
+        repetition_penalty=1.1,
+        stop=['<human>']
+    )
+    # print(llm['prompt'])
+    # print(llm['output']['choices'][0]['text'])
+    answer = (llm['output']['choices'][0]['text']).strip().split("Answer:\n")[0]
+    return answer
+
+
+>>>>>>> Stashed changes
 with gr.Blocks() as incluesive:
     gr.Markdown("# INCLUeSIVE")
     with gr.Tabs() as pages:
@@ -148,17 +161,18 @@ with gr.Blocks() as incluesive:
                         "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
                 with gr.TabItem("Preferences"):
                     pref = gr.Button(value="Preferences", size='sm')
-                    choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
-                                       "Technical Instructions"], label="Writing purpose")
+                    preference_choice = gr.Radio(
+                        ["Professional Correspondence", "Personal Correspondence", "Educational Paper",
+                         "Technical Instructions"], label="Writing purpose")
                     submit_button = gr.Button("Submit", link="")
-                    submit_button.click(inputs=choice, outputs=None)
+                    submit_button.click(inputs=preference_choice, outputs=None)
         """END FIRST PAGE"""
 
         """SECOND PAGE"""
         with gr.TabItem("Input", id=1) as second_page:
             with gr.Tab("Type/Paste"):
                 text_input = gr.Textbox(
-                    label="Your Text",
+                    label="Type or paste your text here.",
                     info="Your Original Text.",
                     lines=10,
                     value=EXAMPLE_TEXT,
@@ -172,15 +186,18 @@ with gr.Blocks() as incluesive:
                     visible=False,
                 )
                 submit_button.click(submit_text, inputs=[text_input], outputs=original_text)
+<<<<<<< Updated upstream
                 clear_button = gr.ClearButton()
                 text_input.change(submit_text, text_input, original_text)
+=======
+                clear_button = gr.ClearButton(text_input)
+>>>>>>> Stashed changes
             with gr.Tab("Upload"):
                 file_input = gr.File(
                     file_types=["text"],
                 )
                 with gr.Row():
                     upload_button = gr.Button("Upload")
-                    clear_button = gr.ClearButton()
                 loaded_text = gr.Textbox(
                     label="Your Text",
                     info="The text you uploaded.",
@@ -193,34 +210,42 @@ with gr.Blocks() as incluesive:
                     value=CORRECTED_TEXT,
                     visible=False,
                 )
-                submit_button = gr.Button("Submit")
-                upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
-                submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
+                with gr.Row():
+                    clear_button = gr.ClearButton(loaded_text)
+                    submit_button = gr.Button("Submit")
+                    upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
+                    submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
         """END SECOND PAGE"""
 
         """THIRD PAGE"""
         with gr.TabItem("Results", id=2) as third_page:
+<<<<<<< Updated upstream
             original_text.render()
             original_text.change(update_preview, original_text, previewText)
+=======
+            input_text = original_text.render()
+            output_text = gr.Textbox(label="Results from LLM")
+>>>>>>> Stashed changes
             with gr.Row():
                 submit_button = gr.Button("Submit")
-                clear_button = gr.ClearButton()
+                clear_button = gr.ClearButton(original_text)
 
-            corrections = gr.HighlightedText(
-                label="Corrections",
-                combine_adjacent=True,
-                show_legend=True,
-                color_map={"+": "green", "-": "red"},
-            )
-            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=corrections)
+            submit_button.click(fn=call_llm, inputs=input_text, outputs=output_text)
+
             with gr.Row():
+                # TODO: Get buttons to do what they are suppose to do inside the TextBox Results from LLM
                 submit_paragraph_button = gr.Button("Accept")
                 accept_paragraph_button = gr.Button("Ignore")
                 done_paragraph_button = gr.Button("Done")
         """END THIRD PAGE"""
 
         """FOURTH PAGE"""
+<<<<<<< Updated upstream
         with gr.TabItem("Save", id=3) as fourth_page:
+=======
+        # TODO: Pass the data from the 3rd page TextBox Results from LLM so we can save
+        with gr.TabItem("Save", id=3) as third_page:
+>>>>>>> Stashed changes
             with gr.Accordion(label="Account"):
                 preferences = gr.Button(value="Preferences")
                 signout = gr.Button(value="Sign Out")
@@ -237,4 +262,9 @@ with gr.Blocks() as incluesive:
                 download_btn.click(fn=download, inputs=[previewText, dropdown_type], outputs=file, api_name="Download")
                 copy_btn.click(fn=copy_text, inputs=previewText, api_name="Copy")
         """END FOURTH PAGE"""
+<<<<<<< Updated upstream
 incluesive.launch()
+=======
+#call_llm()
+incluesive.launch()
+>>>>>>> Stashed changes
