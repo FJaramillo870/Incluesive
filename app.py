@@ -8,23 +8,21 @@ import gradio as gr
 from difflib import Differ
 from fpdf import *
 import pyperclip
-import time
+import together
+
+# TODO: get rid of functions we don't need and unused variables
+
+together.api_key = "327731a3ceb8c1ecd4a8367e272862c335cac67ade0da80c90eb47f0093de500"
 
 users_text = ""
 
-canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=RichTextEditor.html' frameborder='0' scrolling='no'></iframe>"""
-
 # For testing, will be what the user inputs
-EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nam tempus, nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
-
-Etiam libero nisi, fringilla a imperdiet in, luctus a tortor. Pellentesque quis venenatis velit, quis malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac faucibus."""
+EXAMPLE_TEXT = ""
 
 # For testing, will be what the LLM returns
-CORRECTED_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris ultricies elementum nulla, id placerat nunc efficitur non. Nulla ac sodales laoreet, lacus tellus efficitur enim, eget sodales lorem ante ut neque. Mauris quis eros sed velit mollis porta. Aenean libero diam, sagittis sed arcu non, fermentum tincidunt leo. Nulla sed velit tempor, dapibus ex in, rhoncus orci. Praesent sit amet odio sagittis arcu venenatis consequat vitae vitae tortor. Sed et maximus nunc, nec placerat ligula.
+CORRECTED_TEXT = ""
 
-Etiam libero nisi, fringilla a imperdiet in. Pellentesque quis venenatis velit, elit malesuada nisl. Praesent eu placerat ante. Vivamus quis mi porttitor, faucibus purus non, tempus lacus. Pellentesque et imperdiet dui. Vivamus ut lacus quis lacus maximus iaculis. Vivamus mollis odio orci, ut egestas nisl rhoncus nec. Quisque sit amet lorem viverra, lobortis erat quis, consectetur augue. Etiam blandit tempus purus nec maximus. Vestibulum tempus semper ipsum ac tortor."""
-
-textInput = ""
+textInput = "There once was a farmer named..."
 
 DIFFERENCES = []
 
@@ -72,7 +70,6 @@ def load_text(temp_file):
 
 def submit_text(text):
     users_text = text
-    text_input += users_text
     change_page(2)
     return users_text
 
@@ -85,17 +82,39 @@ def diff_texts(text1, text2):
         for token in d.compare(text1, text2)
     ]
 
-
 def prompts(choice):
+    global selected
     if choice == "Professional Correspondence":
-        return
+        selected = "Professional Correspondence"
+        return selected
     elif choice == "Personal Correspondence":
-        return
+        selected = "Personal Correspondence"
+        return selected
     elif choice == "Educational Paper":
-        return
+        selected = "Educational Paper"
+        return selected
     elif choice == "Technical Instructions":
-        return
+        selected = "Technical Instructions"
+        return selected
 
+
+
+def call_llm(prompt_text):
+    llm = together.Complete.create(
+        # TODO: Add the selected preferences choice here to the string instead of hard coding it in.
+        prompt=' Rewrite as a '+selected+ prompt_text,
+        model="togethercomputer/llama-2-7b-chat",
+        max_tokens=256,
+        temperature=0.8,
+        top_k=60,
+        top_p=0.6,
+        repetition_penalty=1.1,
+        stop=['<human>'],
+    )
+    # print(llm['prompt'])
+    # print(llm['output']['choices'][0]['text'])
+    answer = (llm['output']['choices'][0]['text']).strip().split("Answer:\n")[0]
+    return answer
 
 
 with gr.Blocks() as incluesive:
@@ -103,13 +122,10 @@ with gr.Blocks() as incluesive:
     with gr.Tabs() as pages:
         """FIRST PAGE"""
         with gr.TabItem("Welcome", id=0) as first_page:
-            with gr.Tabs():
-                with gr.TabItem("Directions"):
+                with gr.Tab("Writing Preferences"):
                     gr.Markdown(
                         "Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
                         "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
-                with gr.Tab("Writing Preferences"):
-                    pref = gr.Button(value="Preferences", size='sm')
                     choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
                                        "Technical Instructions"], label="Writing purpose")
                     choice.change(fn=prompts, inputs=choice, outputs=None)
@@ -119,7 +135,7 @@ with gr.Blocks() as incluesive:
         with gr.TabItem("Input", id=1) as second_page:
             with gr.Tab("Type/Paste"):
                 text_input = gr.Textbox(
-                    label="Your Text",
+                    label="Type or paste your text here.",
                     info="Your Original Text.",
                     lines=10,
                     value=EXAMPLE_TEXT,
@@ -133,14 +149,13 @@ with gr.Blocks() as incluesive:
                     visible=False,
                 )
                 submit_button.click(submit_text, inputs=[text_input], outputs=original_text)
-                clear_button = gr.ClearButton()
+                clear_button = gr.ClearButton(text_input)
             with gr.Tab("Upload"):
                 file_input = gr.File(
                     file_types=["text"],
                 )
                 with gr.Row():
                     upload_button = gr.Button("Upload")
-                    clear_button = gr.ClearButton()
                 loaded_text = gr.Textbox(
                     label="Your Text",
                     info="The text you uploaded.",
@@ -153,38 +168,32 @@ with gr.Blocks() as incluesive:
                     value=CORRECTED_TEXT,
                     visible=False,
                 )
-                submit_button = gr.Button("Submit")
-                upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
-                submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
-            with gr.Tab("Rich Text Editor"):
-                gr.HTML(canvas_html, elem_id="canvas_html")
                 with gr.Row():
-                    download_button = gr.Button("Download")
-                    copy_button = gr.Button("Copy")
-                    done_button = gr.Button("Done")
+                    clear_button = gr.ClearButton(loaded_text)
+                    submit_button = gr.Button("Submit")
+                    upload_button.click(load_text, inputs=[file_input], outputs=[loaded_text])
+                    submit_button.click(submit_text, inputs=[loaded_text], outputs=original_text)
         """END SECOND PAGE"""
 
         """THIRD PAGE"""
         with gr.TabItem("Results", id=2) as third_page:
-            original_text.render()
+            input_text = original_text.render()
+            output_text = gr.Textbox(label="Results from LLM")
             with gr.Row():
                 submit_button = gr.Button("Submit")
-                clear_button = gr.ClearButton()
+                clear_button = gr.ClearButton(original_text)
 
-            corrections = gr.HighlightedText(
-                label="Corrections",
-                combine_adjacent=True,
-                show_legend=True,
-                color_map={"+": "green", "-": "red"},
-            )
-            submit_button.click(diff_texts, inputs=[original_text, corrected_text], outputs=corrections)
+            submit_button.click(fn=call_llm, inputs=input_text, outputs=output_text)
+
             with gr.Row():
+                # TODO: Get buttons to do what they are suppose to do inside the TextBox Results from LLM
                 submit_paragraph_button = gr.Button("Accept")
                 accept_paragraph_button = gr.Button("Ignore")
                 done_paragraph_button = gr.Button("Done")
         """END THIRD PAGE"""
 
         """FOURTH PAGE"""
+        # TODO: Pass the data from the 3rd page TextBox Results from LLM so we can save
         with gr.TabItem("Save", id=3) as third_page:
             with gr.Accordion(label="Account"):
                 preferences = gr.Button(value="Preferences")
