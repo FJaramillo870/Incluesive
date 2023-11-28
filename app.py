@@ -12,7 +12,7 @@ import together
 
 # TODO: get rid of functions we don't need and unused variables
 
-together.api_key = "327731a3ceb8c1ecd4a8367e272862c335cac67ade0da80c90eb47f0093de500"
+together.api_key = ""
 
 users_text = ""
 
@@ -82,6 +82,8 @@ def diff_texts(text1, text2):
         for token in d.compare(text1, text2)
     ]
 
+
+
 def prompts(choice):
     global selected
     if choice == "Professional Correspondence":
@@ -109,7 +111,7 @@ def call_llm(prompt_text):
         top_k=60,
         top_p=0.6,
         repetition_penalty=1.1,
-        stop=['<human>'],
+        stop=['<human>']
     )
     # print(llm['prompt'])
     # print(llm['output']['choices'][0]['text'])
