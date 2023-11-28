@@ -32,6 +32,7 @@ original_text = gr.Textbox(
     info="Your original text.",
 )
 
+previewText = gr.Textbox(label="Output Textbox", value=textInput)
 
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
@@ -40,23 +41,54 @@ def change_page(page_number):
     return gr.Tabs.update(selected=page_number)
 
 
-def download(output):
-    """Download text as a PDF."""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    pdf.multi_cell(0, 10, str(output))
-    pdf_file = "history_download.pdf"
-    pdf.output(pdf_file)
-    return pdf_file
+def update_preview(text):
+    gr.Textbox(label="Output Textbox", value=textInput)
+    return text
 
 
-def copyText(output):
+def download(output, type):
+    match type:
+        case "PDF":
+            """Download text as a PDF."""
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+
+            pdf.multi_cell(0, 10, str(output))
+            pdf_file = "history_download.pdf"
+            pdf.output(pdf_file)
+            return pdf_file
+        case "DOCX":
+            doc = Document()
+
+            doc.add_heading('History Download', 0)
+            doc.add_paragraph(output)
+            doc_output = "history_download.docx"
+            doc.save(doc_output)
+
+            return doc_output
+        case "TXT":
+            text_file = 'history_download.txt'
+            with open('history_download.txt', 'w') as txt_file:
+                txt_file.write(output)
+                txt_file.close()
+            return text_file
+        case _:
+            """Download text as a PDF."""
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+
+            pdf.multi_cell(0, 10, str(output))
+            pdf_file = type + "history_download.pdf"
+            pdf.output(pdf_file)
+            return pdf_file
+
+
+def copy_text(output):
     """Copy text to the clipboard."""
     pyperclip.copy(output)
     text = pyperclip.paste()
-    return text
 
 
 def load_text(temp_file):
@@ -69,6 +101,7 @@ def load_text(temp_file):
 
 def submit_text(text):
     users_text = text
+    text_input += users_text
     change_page(2)
     return users_text
 
@@ -80,6 +113,10 @@ def diff_texts(text1, text2):
         (token[2:], token[0] if token[0] != " " else None)
         for token in d.compare(text1, text2)
     ]
+
+
+def dropdown_callback(value):
+    return value
 
 
 def prompts(choice):
@@ -195,19 +232,22 @@ with gr.Blocks() as incluesive:
 
         """FOURTH PAGE"""
         # TODO: Pass the data from the 3rd page TextBox Results from LLM so we can save
-        with gr.TabItem("Save", id=3) as third_page:
+        with gr.TabItem("Save", id=3) as fourth_page:
             with gr.Accordion(label="Account"):
                 preferences = gr.Button(value="Preferences")
                 signout = gr.Button(value="Sign Out")
             with gr.Row():
-                output = gr.Textbox(label="Output Textbox", value=textInput)
+                previewText.render()
                 file = gr.File()
             with gr.Row():
+                dropdown_type = gr.Dropdown(
+                    ["DOCX", "PDF", "TXT"], label="File Type", info="Select your file type."
+                )
                 download_btn = gr.Button(value="Download", scale=0)
                 copy_btn = gr.Button(value="Copy", scale=0)
                 done_btn = gr.Button(value="Done", scale=0)
-                download_btn.click(fn=download, inputs=output, outputs=file, api_name="Download")
-                copy_btn.click(fn=copyText, inputs=output, outputs=output, api_name="Copy")
+                download_btn.click(fn=download, inputs=[previewText, dropdown_type], outputs=file, api_name="Download")
+                copy_btn.click(fn=copy_text, inputs=previewText, api_name="Copy")
         """END FOURTH PAGE"""
 
 incluesive.launch()
