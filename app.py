@@ -7,6 +7,7 @@
 import gradio as gr
 from difflib import Differ
 from fpdf import *
+from docx import *
 import pyperclip
 import together
 
