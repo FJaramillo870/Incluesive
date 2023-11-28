@@ -30,7 +30,6 @@ DIFFERENCES = []
 original_text = gr.Textbox(
     label="Your Text",
     info="Your original text.",
-    lines=10,
 )
 
 
@@ -73,6 +72,7 @@ def submit_text(text):
     change_page(2)
     return users_text
 
+
 def diff_texts(text1, text2):
     """Find the differences between two texts."""
     d = Differ()
@@ -81,25 +81,29 @@ def diff_texts(text1, text2):
         for token in d.compare(text1, text2)
     ]
 
+
 def prompts(choice):
     global selected
-    if choice == "Professional Correspondence":
-        selected = "Professional Correspondence"
+    if choice == "Search for Grammar Errors":
+        selected = "Do not rewrite, just fix the grammatical errors in the following sentences:"
+        return selected
+    elif choice == "Professional Correspondence":
+        selected = "Rewrite the following as a Professional Correspondence"
         return selected
     elif choice == "Personal Correspondence":
-        selected = "Personal Correspondence"
+        selected = "Rewrite the following as a Personal Correspondence"
         return selected
     elif choice == "Educational Paper":
-        selected = "Educational Paper"
+        selected = "Rewrite the following as an Educational Paper"
         return selected
     elif choice == "Technical Instructions":
-        selected = "Technical Instructions"
+        selected = "Rewrite the following to Technical Instructions"
         return selected
 
 
 def call_llm(prompt_text):
     llm = together.Complete.create(
-        prompt='Correct this to proper English grammar and rewrite as a ' + selected + " " + prompt_text,
+        prompt=selected + " " + prompt_text,
         model="togethercomputer/llama-2-7b-chat",
         max_tokens=256,
         temperature=0.8,
@@ -108,7 +112,7 @@ def call_llm(prompt_text):
         repetition_penalty=1.1,
         stop=['<human>']
     )
-    # print(llm['prompt'])
+    print(llm['prompt'])
     # print(llm['output']['choices'][0]['text'])
     answer = (llm['output']['choices'][0]['text']).strip().split("Answer:\n")[0]
     return answer
@@ -123,8 +127,9 @@ with gr.Blocks() as incluesive:
                 gr.Markdown(
                     "Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
                     "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
-                choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
-                                   "Technical Instructions"], label="Writing purpose")
+                choice = gr.Radio(
+                    ["Search for Grammar Errors", "Professional Correspondence", "Personal Correspondence",
+                     "Educational Paper", "Technical Instructions"], label="Writing purpose")
                 choice.change(fn=prompts, inputs=choice, outputs=None)
         """END FIRST PAGE"""
 
@@ -134,14 +139,12 @@ with gr.Blocks() as incluesive:
                 text_input = gr.Textbox(
                     label="Type or paste your text here.",
                     info="Your Original Text.",
-                    lines=10,
                     value=EXAMPLE_TEXT,
                 )
                 submit_button = gr.Button("Submit")
                 corrected_text = gr.Textbox(
                     label="Corrected Text",
                     info="Our suggested corrected text",
-                    lines=10,
                     value=CORRECTED_TEXT,
                     visible=False,
                 )
@@ -156,14 +159,6 @@ with gr.Blocks() as incluesive:
                 loaded_text = gr.Textbox(
                     label="Your Text",
                     info="The text you uploaded.",
-                    lines=10,
-                )
-                corrected_text = gr.Textbox(
-                    label="Corrected Text",
-                    info="Our suggested corrected text",
-                    lines=10,
-                    value=CORRECTED_TEXT,
-                    visible=False,
                 )
                 with gr.Row():
                     clear_button = gr.ClearButton(loaded_text)
@@ -180,13 +175,22 @@ with gr.Blocks() as incluesive:
                 submit_button = gr.Button("Make Request")
                 clear_button = gr.ClearButton(original_text)
 
-            submit_button.click(fn=call_llm, inputs=input_text, outputs=output_text)
-
+            corrections = gr.HighlightedText(
+                label="Corrections",
+                combine_adjacent=True,
+                show_legend=True,
+                color_map={"+": "green", "-": "red"},
+            )
             with gr.Row():
-                # TODO: Get buttons to do what they are suppose to do inside the TextBox Results from LLM
-                submit_paragraph_button = gr.Button("Accept")
+                highlight_button = gr.Button("Highlight Differences")
                 accept_paragraph_button = gr.Button("Ignore")
-                done_paragraph_button = gr.Button("Submit")
+                submit_paragraph_button = gr.Button("Submit")
+
+            submit_button.click(fn=call_llm, inputs=input_text, outputs=output_text)
+            highlight_button.click(diff_texts, inputs=[input_text, output_text], outputs=[corrections])
+            # TODO: trying to send this to the 4th page not working right now
+            # submit_paragraph_button.click(submit_text, inputs=[corrections], outputs=output)
+
         """END THIRD PAGE"""
 
         """FOURTH PAGE"""
