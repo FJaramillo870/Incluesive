@@ -140,7 +140,8 @@ def prompts(choice):
 
 def call_llm(prompt_text):
     llm = together.Complete.create(
-        prompt=selected + " " + prompt_text,
+        prompt=selected + "You are a professional editor, offering advice "
+                          "and/or technical editing in a multitude of areas. " + prompt_text,
         model="togethercomputer/llama-2-7b-chat",
         max_tokens=256,
         temperature=0.8,
