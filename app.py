@@ -73,7 +73,6 @@ def submit_text(text):
     change_page(2)
     return users_text
 
-
 def diff_texts(text1, text2):
     """Find the differences between two texts."""
     d = Differ()
@@ -81,7 +80,6 @@ def diff_texts(text1, text2):
         (token[2:], token[0] if token[0] != " " else None)
         for token in d.compare(text1, text2)
     ]
-
 
 def prompts(choice):
     global selected
@@ -101,8 +99,7 @@ def prompts(choice):
 
 def call_llm(prompt_text):
     llm = together.Complete.create(
-        # TODO: Add the selected preferences choice here to the string instead of hard coding it in.
-        prompt=' Rewrite as a ' + selected + prompt_text,
+        prompt='Correct this to proper English grammar and rewrite as a ' + selected + " " + prompt_text,
         model="togethercomputer/llama-2-7b-chat",
         max_tokens=256,
         temperature=0.8,
@@ -111,7 +108,7 @@ def call_llm(prompt_text):
         repetition_penalty=1.1,
         stop=['<human>']
     )
-    print(llm['selected'])
+    # print(llm['prompt'])
     # print(llm['output']['choices'][0]['text'])
     answer = (llm['output']['choices'][0]['text']).strip().split("Answer:\n")[0]
     return answer
@@ -180,7 +177,7 @@ with gr.Blocks() as incluesive:
             input_text = original_text.render()
             output_text = gr.Textbox(label="Results from LLM")
             with gr.Row():
-                submit_button = gr.Button("Submit")
+                submit_button = gr.Button("Make Request")
                 clear_button = gr.ClearButton(original_text)
 
             submit_button.click(fn=call_llm, inputs=input_text, outputs=output_text)
@@ -189,7 +186,7 @@ with gr.Blocks() as incluesive:
                 # TODO: Get buttons to do what they are suppose to do inside the TextBox Results from LLM
                 submit_paragraph_button = gr.Button("Accept")
                 accept_paragraph_button = gr.Button("Ignore")
-                done_paragraph_button = gr.Button("Done")
+                done_paragraph_button = gr.Button("Submit")
         """END THIRD PAGE"""
 
         """FOURTH PAGE"""
