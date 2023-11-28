@@ -9,7 +9,8 @@ with gr.Blocks(theme=gr.themes.Soft()) as first_page:
     with gr.Tab("Writing Preferences"):
         pref = gr.Button(value="Preferences", size='sm')
         choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper", "Technical Instructions"],label="Writing purpose")
-        submit_button = gr.Button("Submit", link="")
-        submit_button.click(inputs=choice, outputs=None)
+        choice.change(fn=None, inputs=choice, outputs=None)
+        #submit_button = gr.Button("Submit")
+        #submit_button.click(inputs=radio, outputs=text)
 
 first_page.launch()
