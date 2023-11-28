@@ -12,7 +12,7 @@ import together
 
 # TODO: get rid of functions we don't need and unused variables
 
-together.api_key = "YOUR API KEY HERE"
+together.api_key = ""
 
 users_text = ""
 
