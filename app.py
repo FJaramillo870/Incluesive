@@ -13,7 +13,7 @@ import together
 
 # TODO: get rid of functions we don't need and unused variables
 
-together.api_key = ""
+together.api_key = "7c2f54b700eb71765384609a54eebebde0837bd6a500290e9328a1ce0b91b734"
 
 users_text = ""
 
@@ -24,6 +24,8 @@ EXAMPLE_TEXT = ""
 CORRECTED_TEXT = ""
 
 textInput = "There once was a farmer named..."
+
+selected = ""
 
 DIFFERENCES = []
 
@@ -101,8 +103,9 @@ def load_text(temp_file):
 
 
 def submit_text(text):
+    global textInput, users_text
     users_text = text
-    text_input += users_text
+    textInput += users_text
     change_page(2)
     return users_text
 
@@ -141,8 +144,7 @@ def prompts(choice):
 
 def call_llm(prompt_text):
     llm = together.Complete.create(
-        prompt=selected + "You are a professional editor, offering advice "
-                          "and/or technical editing in a multitude of areas. " + prompt_text,
+        prompt=selected + " " + prompt_text,
         model="togethercomputer/llama-2-7b-chat",
         max_tokens=256,
         temperature=0.8,
@@ -210,7 +212,7 @@ with gr.Blocks() as incluesive:
         with gr.TabItem("Results", id=2) as third_page:
             input_text = original_text.render()
             output_text = gr.Textbox(label="Results from LLM")
-            original_text.change(update_preview, original_text, previewText)
+            output_text.change(update_preview, output_text, previewText)
             with gr.Row():
                 submit_button = gr.Button("Make Request")
                 clear_button = gr.ClearButton(original_text)
