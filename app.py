@@ -83,10 +83,28 @@ def diff_texts(text1, text2):
     ]
 
 
+
+def prompts(choice):
+    global selected
+    if choice == "Professional Correspondence":
+        selected = "Professional Correspondence"
+        return selected
+    elif choice == "Personal Correspondence":
+        selected = "Personal Correspondence"
+        return selected
+    elif choice == "Educational Paper":
+        selected = "Educational Paper"
+        return selected
+    elif choice == "Technical Instructions":
+        selected = "Technical Instructions"
+        return selected
+
+
+
 def call_llm(prompt_text):
     llm = together.Complete.create(
         # TODO: Add the selected preferences choice here to the string instead of hard coding it in.
-        prompt=' Rewrite as a Professional Correspondence'+ prompt_text,
+        prompt=' Rewrite as a '+selected+ prompt_text,
         model="togethercomputer/llama-2-7b-chat",
         max_tokens=256,
         temperature=0.8,
@@ -106,18 +124,13 @@ with gr.Blocks() as incluesive:
     with gr.Tabs() as pages:
         """FIRST PAGE"""
         with gr.TabItem("Welcome", id=0) as first_page:
-            with gr.Tabs():
-                with gr.TabItem("Directions"):
+                with gr.Tab("Writing Preferences"):
                     gr.Markdown(
                         "Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
                         "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
-                with gr.TabItem("Preferences"):
-                    pref = gr.Button(value="Preferences", size='sm')
-                    preference_choice = gr.Radio(
-                        ["Professional Correspondence", "Personal Correspondence", "Educational Paper",
-                         "Technical Instructions"], label="Writing purpose")
-                    submit_button = gr.Button("Submit", link="")
-                    submit_button.click(inputs=preference_choice, outputs=None)
+                    choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
+                                       "Technical Instructions"], label="Writing purpose")
+                    choice.change(fn=prompts, inputs=choice, outputs=None)
         """END FIRST PAGE"""
 
         """SECOND PAGE"""
@@ -197,4 +210,5 @@ with gr.Blocks() as incluesive:
                 download_btn.click(fn=download, inputs=output, outputs=file, api_name="Download")
                 copy_btn.click(fn=copyText, inputs=output, outputs=output, api_name="Copy")
         """END FOURTH PAGE"""
+
 incluesive.launch()
