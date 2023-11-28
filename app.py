@@ -83,7 +83,6 @@ def diff_texts(text1, text2):
     ]
 
 
-
 def prompts(choice):
     global selected
     if choice == "Professional Correspondence":
@@ -100,11 +99,10 @@ def prompts(choice):
         return selected
 
 
-
 def call_llm(prompt_text):
     llm = together.Complete.create(
         # TODO: Add the selected preferences choice here to the string instead of hard coding it in.
-        prompt=' Rewrite as a '+selected+ prompt_text,
+        prompt=' Rewrite as a ' + selected + prompt_text,
         model="togethercomputer/llama-2-7b-chat",
         max_tokens=256,
         temperature=0.8,
@@ -113,7 +111,7 @@ def call_llm(prompt_text):
         repetition_penalty=1.1,
         stop=['<human>']
     )
-    # print(llm['prompt'])
+    print(llm['selected'])
     # print(llm['output']['choices'][0]['text'])
     answer = (llm['output']['choices'][0]['text']).strip().split("Answer:\n")[0]
     return answer
@@ -124,13 +122,13 @@ with gr.Blocks() as incluesive:
     with gr.Tabs() as pages:
         """FIRST PAGE"""
         with gr.TabItem("Welcome", id=0) as first_page:
-                with gr.Tab("Writing Preferences"):
-                    gr.Markdown(
-                        "Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
-                        "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
-                    choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
-                                       "Technical Instructions"], label="Writing purpose")
-                    choice.change(fn=prompts, inputs=choice, outputs=None)
+            with gr.Tab("Writing Preferences"):
+                gr.Markdown(
+                    "Welcome to Incluesive an app that will help correcct your writings to be more incluesive of everyone. "
+                    "To use Incluesive Pick a writing purpose then enter your text into the text box and submit. After you submit the changes to your text will be shown.")
+                choice = gr.Radio(["Professional Correspondence", "Personal Correspondence", "Educational Paper",
+                                   "Technical Instructions"], label="Writing purpose")
+                choice.change(fn=prompts, inputs=choice, outputs=None)
         """END FIRST PAGE"""
 
         """SECOND PAGE"""
