@@ -11,16 +11,13 @@ from docx import *
 import pyperclip
 import together
 
-# TODO: get rid of functions we don't need and unused variables
 
-together.api_key = "7c2f54b700eb71765384609a54eebebde0837bd6a500290e9328a1ce0b91b734"
+together.api_key = ""
 
 users_text = ""
 
-# For testing, will be what the user inputs
 EXAMPLE_TEXT = ""
 
-# For testing, will be what the LLM returns
 CORRECTED_TEXT = ""
 
 textInput = "There once was a farmer named..."
@@ -39,16 +36,18 @@ previewText = gr.Textbox(label="Output Textbox", value=textInput)
 
 # Isn't currently working. Seems to need to be called with a button click like other componenets/functions
 # Source: https://github.com/gradio-app/gradio/issues/2412
+
+# Chris
 def change_page(page_number):
     """Changes the page to the page number passed in."""
     return gr.Tabs.update(selected=page_number)
 
-
+# Dion
 def update_preview(text):
     gr.Textbox(label="Output Textbox", value=textInput)
     return text
 
-
+# Dion
 def download(output, type):
     match type:
         case "PDF":
@@ -88,12 +87,13 @@ def download(output, type):
             return pdf_file
 
 
+# Dion
 def copy_text(output):
     """Copy text to the clipboard."""
     pyperclip.copy(output)
     text = pyperclip.paste()
 
-
+# Chris
 def load_text(temp_file):
     """Load text from a temporary file."""
     content = ""
@@ -101,7 +101,7 @@ def load_text(temp_file):
         content = f.read()
     return content
 
-
+# Anita
 def submit_text(text):
     global textInput, users_text
     users_text = text
@@ -109,7 +109,7 @@ def submit_text(text):
     change_page(2)
     return users_text
 
-
+# Chris
 def diff_texts(text1, text2):
     """Find the differences between two texts."""
     d = Differ()
@@ -118,11 +118,11 @@ def diff_texts(text1, text2):
         for token in d.compare(text1, text2)
     ]
 
-
+# Dion
 def dropdown_callback(value):
     return value
 
-
+# Felix
 def prompts(choice):
     global selected
     if choice == "Search for Grammar Errors":
@@ -141,7 +141,7 @@ def prompts(choice):
         selected = "Rewrite the following to Technical Instructions"
         return selected
 
-
+# Anita
 def call_llm(prompt_text):
     llm = together.Complete.create(
         prompt=selected + " " + prompt_text,
@@ -153,16 +153,15 @@ def call_llm(prompt_text):
         repetition_penalty=1.1,
         stop=['<human>']
     )
-    print(llm['prompt'])
-    # print(llm['output']['choices'][0]['text'])
     answer = (llm['output']['choices'][0]['text']).strip().split("Answer:\n")[0]
     return answer
 
-
+# Chris, Anita, Felix, Dion
 with gr.Blocks() as incluesive:
     gr.Markdown("# INCLUeSIVE")
     with gr.Tabs() as pages:
         """FIRST PAGE"""
+        # Felix
         with gr.TabItem("Welcome", id=0) as first_page:
             with gr.Tab("Writing Preferences"):
                 gr.Markdown(
@@ -175,6 +174,7 @@ with gr.Blocks() as incluesive:
         """END FIRST PAGE"""
 
         """SECOND PAGE"""
+        # Chris and Anita
         with gr.TabItem("Input", id=1) as second_page:
             with gr.Tab("Type/Paste"):
                 text_input = gr.Textbox(
@@ -209,6 +209,7 @@ with gr.Blocks() as incluesive:
         """END SECOND PAGE"""
 
         """THIRD PAGE"""
+        # Anita
         with gr.TabItem("Results", id=2) as third_page:
             input_text = original_text.render()
             output_text = gr.Textbox(label="Results from LLM")
@@ -230,13 +231,11 @@ with gr.Blocks() as incluesive:
 
             submit_button.click(fn=call_llm, inputs=input_text, outputs=output_text)
             highlight_button.click(diff_texts, inputs=[input_text, output_text], outputs=[corrections])
-            # TODO: trying to send this to the 4th page not working right now
-            # submit_paragraph_button.click(submit_text, inputs=[corrections], outputs=output)
 
         """END THIRD PAGE"""
 
         """FOURTH PAGE"""
-        # TODO: Pass the data from the 3rd page TextBox Results from LLM so we can save
+        # Dion
         with gr.TabItem("Save", id=3) as fourth_page:
             with gr.Accordion(label="Account"):
                 preferences = gr.Button(value="Preferences")
