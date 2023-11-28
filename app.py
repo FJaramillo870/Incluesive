@@ -208,6 +208,7 @@ with gr.Blocks() as incluesive:
         with gr.TabItem("Results", id=2) as third_page:
             input_text = original_text.render()
             output_text = gr.Textbox(label="Results from LLM")
+            original_text.change(update_preview, original_text, previewText)
             with gr.Row():
                 submit_button = gr.Button("Make Request")
                 clear_button = gr.ClearButton(original_text)
